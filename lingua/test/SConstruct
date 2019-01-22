@@ -1,0 +1,153 @@
+
+import sys
+import glob
+
+_target_name = "lingua_test"
+
+_CXX = "g++"
+# -std=c++11 -stdlib=libstdc++ 
+_CCFLAGS = "-std=c++14 \
+			-g -Wall -Wreturn-type \
+			-I/usr/local/opt/openssl/include \
+			-I/usr/local/Cellar/ \
+			-I/usr/local/include/ \
+			-I/usr/local/include/jsoncpp/ \
+			-I/usr/include/ \
+			-I/usr/include/jsoncpp/ \
+			-I/usr/include/postgresql \
+			-I../../../searchcell/contrib/cxxtest/ \
+			-I../../../ \
+			-I../ "
+			
+_CFLAGS = "-std=c99"
+
+_LINKFLAGS = " -L. \
+			-L/usr/local/lib/ \
+			-L../../searchcell/contrib/cld2/internal/"
+
+# \
+
+_CPP_LIBS = ["protobuf",
+#			"ssl",
+#			"crypto",
+			"jsoncpp",
+			"lzma",
+#			"icui18n",
+			"pq",
+#			"pcre",
+			"boost_system",
+			"boost_log",
+			"boost_log_setup",
+			"boost_thread-mt",
+			"boost_iostreams",
+			"boost_program_options",
+			"boost_filesystem",
+#			"boost_locale",
+            "leveldb",
+			"pthread",
+			"boost_regex",
+#			"iconv",
+			"curl",
+			"cld2_static",
+			"searchcell_cdeps"
+			]
+
+_CPPPATH = []
+_CPPFILES = []
+
+_CPPPATH.append("/usr/local/include/")
+_CPPPATH.append("/usr/include/")
+_CPPPATH.append("./")
+_CPPPATH.append("../../")
+_CPPPATH.append("../../crawl")
+_CPPPATH.append("../../misc")
+_CPPPATH.append("../../db/")
+
+_CPPFILES.append(Glob("*.cpp"))
+_CPPFILES.append(Glob("../*.cpp"))
+
+_CPPFILES.append(Glob("../../../misc/*.cpp"))
+
+_CPPFILES.append(Glob("../hair/*.cpp"))
+_CPPFILES.append(Glob("../../../searchcell/strings/*.cpp"))
+
+
+###### C Dependencies ######
+
+_CDEPS_CFLAGS = "-std=c99"
+_CDEPS_CPPPATH = []
+_CDEPS_CFILES = []
+
+_CDEPS_CFILES.append(Glob("../../../searchcell/contrib/libstemmer_c/src_c/*.c"))
+_CDEPS_CFILES.append(Glob("../../../searchcell/contrib/libstemmer_c/libstemmer/*.c"))
+_CDEPS_CFILES.append(Glob("../../../searchcell/contrib/libstemmer_c/runtime/*.c"))
+
+
+StaticLibrary("searchcell_cdeps", _CDEPS_CFILES, CFLAGS=_CDEPS_CFLAGS, CPPPATH = _CDEPS_CPPPATH)
+
+
+############################
+
+#####       CLD2       #####
+
+
+_CLD2_CPPFILES =[
+  "cldutil.cc",
+  "cldutil_shared.cc",
+  "compact_lang_det.cc",
+  "compact_lang_det_hint_code.cc",
+  "compact_lang_det_impl.cc",
+  "debug.cc",
+  "fixunicodevalue.cc",
+  "generated_entities.cc",
+  "generated_language.cc",
+  "generated_ulscript.cc",
+  "getonescriptspan.cc",
+  "lang_script.cc",
+  "offsetmap.cc",
+  "scoreonescriptspan.cc",
+  "tote.cc",
+  "utf8statetable.cc",
+  "cld_generated_cjk_uni_prop_80.cc",
+  "cld2_generated_cjk_compatible.cc",
+  "cld_generated_cjk_delta_bi_4.cc",
+  "generated_distinct_bi_0.cc",
+  "cld2_generated_quadchrome_2.cc",
+  "cld2_generated_deltaoctachrome.cc",
+  "cld2_generated_distinctoctachrome.cc",
+  "cld_generated_score_quad_octa_2.cc"
+]
+
+cld2_internal_dir = "../../../searchcell/contrib/cld2/internal/"
+
+ps = []
+for p in _CLD2_CPPFILES:
+  ps.append( cld2_internal_dir + p )
+_CLD2_CPPFILES = ps
+
+
+_CLD2_CCFLAGS = "-std=c++14 -Wno-narrowing -g -Wall -Wreturn-type"
+
+_CLD2_LINKFLAGS = "-L/usr/local/lib/ -L./"
+
+_CLD2_CPPPATH = [
+  "../../searchcell/contrib/cld2/public/",
+  "../../searchcell/contrib/cld2/internal/",
+  "./"
+]
+
+StaticLibrary("cld2_static", _CLD2_CPPFILES, CXX = _CXX, CPPPATH = _CLD2_CPPPATH, CCFLAGS=_CLD2_CCFLAGS, LINKFLAGS=_CLD2_LINKFLAGS)
+
+############################
+
+SetOption('num_jobs', 8)
+
+Program(_target_name,
+	_CPPFILES,
+	CCFLAGS=_CCFLAGS,
+	CFLAGS=_CFLAGS,
+	LIBS=_CPP_LIBS,
+	LIBPATH=["/usr/lib", "/usr/local/lib", "./"],
+	LINKFLAGS=_LINKFLAGS,
+	CXX = _CXX,
+	CPPPATH = _CPPPATH)
